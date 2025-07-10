@@ -286,14 +286,12 @@ pub const Table = struct {
         const truncated_info = try stripAnsiAndCount(truncated_text, allocator);
         const final_visible_len = truncated_info.display_width;
         const padding = width - final_visible_len;
-
         const left_pad = switch (alignment) {
             .left => 0,
             .right => padding,
             .center => padding / 2,
         };
         const right_pad = padding - left_pad;
-
         const left_spaces = try makePadding(allocator, left_pad);
         const right_spaces = try makePadding(allocator, right_pad);
 
@@ -305,19 +303,16 @@ pub const Table = struct {
     fn printHorizontalLine(self: *const Table, line_type: enum { top, middle, bottom }) void {
         const chars = self.getBoxChars();
         const color = self.color_theme.border_color;
-
         const left_char = switch (line_type) {
             .top => chars.top_left,
             .middle => chars.tee_right,
             .bottom => chars.bottom_left,
         };
-
         const right_char = switch (line_type) {
             .top => chars.top_right,
             .middle => chars.tee_left,
             .bottom => chars.bottom_right,
         };
-
         const junction_char = switch (line_type) {
             .top => chars.tee_down,
             .middle => chars.cross,
@@ -330,7 +325,6 @@ pub const Table = struct {
             for (0..column.width + 2) |_| {
                 print("{s}", .{chars.horizontal});
             }
-
             if (i < self.columns.items.len - 1) {
                 print("{s}", .{junction_char});
             } else {
@@ -366,7 +360,6 @@ pub const Table = struct {
                 print("{s}{s} {s} {s}{s}", .{ Color.reset, self.color_theme.header_color, padded_header, Color.reset, self.color_theme.border_color });
                 print("{s}", .{chars.vertical});
             }
-
             print("{s}\n", .{Color.reset});
             self.printHorizontalLine(.middle);
         }
@@ -411,7 +404,6 @@ pub fn createSimpleTable(allocator: Allocator, headers: []const []const u8, rows
                 max_width = row[col_index].len;
             }
         }
-
         try table.addColumn(header, @max(max_width, 5), .left);
     }
 
@@ -433,7 +425,6 @@ pub fn createSimpleTableWithStyle(allocator: Allocator, headers: []const []const
                 max_width = row[col_index].len;
             }
         }
-
         try table.addColumn(header, @max(max_width, 5), .left);
     }
 
