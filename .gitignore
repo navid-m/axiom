@@ -2,4 +2,5 @@
 *.pdb
 *.lib
 .zig-cache
+zig-out
 .vscode
