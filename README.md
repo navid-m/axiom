@@ -20,6 +20,7 @@ try table.printTable();
 -  Sparklines
 -  Bar charts
 -  Line charts
+-  Breakdown charts
 
 ## Preview
 

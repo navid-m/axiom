@@ -30,6 +30,10 @@ pub const Color = struct {
     pub const bright_white = "\x1b[97m";
 
     pub const rcolor_list = [_][]const u8{ red, green, yellow, bright_red, bright_white, bright_blue, blue, bright_cyan, bg_red, cyan, bg_green, bg_blue };
+
+    pub fn print(self: *Color) !void {
+        std.io.getStdOut().writer().print(self);
+    }
 };
 
 pub fn randomColorCode() []const u8 {
