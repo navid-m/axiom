@@ -407,9 +407,9 @@ test "simple table creation" {
     try rounded_table.addColumn("Framework", 12, .left);
     try rounded_table.addColumn("Stars", 8, .right);
     try rounded_table.addColumn("Language", 10, .center);
-    try rounded_table.addRow(&[_][]const u8{ "React", "220k", "JavaScript" });
-    try rounded_table.addRow(&[_][]const u8{ "Vue", "206k", "JavaScript" });
-    try rounded_table.addRow(&[_][]const u8{ "Angular", "93k", "TypeScript" });
+    try rounded_table.addRow(&[_][]const u8{ "React", "220k", "I" });
+    try rounded_table.addRow(&[_][]const u8{ "Vue", "206k", "Hate" });
+    try rounded_table.addRow(&[_][]const u8{ "Angular", "93k", "Frameworks" });
     try rounded_table.printTable();
 
     print("\nRounded Table Example II\n", .{});
