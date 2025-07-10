@@ -321,11 +321,7 @@ pub fn createSimpleTableWithStyle(allocator: Allocator, headers: []const []const
 }
 
 test "table creation and basic functionality" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    var table = Table.init(allocator, .ascii);
+    var table = Table.init(std.heap.page_allocator, .ascii);
     defer table.deinit();
 
     try table.addColumn("Name", 10, .left);
