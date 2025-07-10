@@ -15,7 +15,6 @@ const showError = toasts.showError;
 const showSuccess = toasts.showSuccess;
 const showWarning = toasts.showWarning;
 
-/// Table color theme
 pub const TableColorTheme = struct {
     border_color: []const u8,
     header_color: []const u8,
