@@ -4,21 +4,23 @@ const toasts = @import("toasts.zig");
 const colors = @import("colors.zig");
 const tables = @import("tables.zig");
 
-const Table = tables.Table;
-const TableColorTheme = tables.TableColorTheme;
-const Toast = toasts.Toast;
+pub const Table = tables.Table;
+pub const TableColorTheme = tables.TableColorTheme;
+pub const Toast = toasts.Toast;
+pub const Color = colors.Color;
+
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
-const Color = colors.Color;
 
 const testing = std.testing;
 const print = std.debug.print;
-const showInfo = toasts.showInfo;
-const showError = toasts.showError;
-const showSuccess = toasts.showSuccess;
-const showWarning = toasts.showWarning;
-const createSimpleTable = tables.createSimpleTable;
-const createSimpleTableWithStyle = tables.createSimpleTableWithStyle;
+
+pub const showInfo = toasts.showInfo;
+pub const showError = toasts.showError;
+pub const showSuccess = toasts.showSuccess;
+pub const showWarning = toasts.showWarning;
+pub const createSimpleTable = tables.createSimpleTable;
+pub const createSimpleTableWithStyle = tables.createSimpleTableWithStyle;
 
 test "table creation and basic functionality" {
     var table = Table.init(std.heap.page_allocator, .ascii);
