@@ -14,6 +14,13 @@ try table.addRow(&[_][]const u8{ "Bob", "30", "Los Angeles" });
 try table.printTable();
 ```
 
+## Supported constructs
+
+-  Tables
+-  Sparklines
+-  Bar charts
+-  Line charts
+
 ## Preview
 
 <img src="img/screen_2.png">
