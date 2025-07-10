@@ -21,6 +21,7 @@ try table.printTable();
 -  Bar charts
 -  Line charts
 -  Breakdown charts
+-  Trees
 
 ## Preview
 
