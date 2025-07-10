@@ -164,6 +164,28 @@ pub const Table = struct {
     color_theme: TableColorTheme,
     alternating_rows: bool,
 
+    fn getVisibleWidth(allocator: std.mem.Allocator, text: []const u8) !usize {
+        const stripped = try stripAnsiAndCount(text, allocator);
+        return stripped.display_width;
+    }
+
+    fn computeColumnWidths(self: Table, allocator: std.mem.Allocator) !void {
+        for (self.columns.items, 0..) |*column, col_index| {
+            var max_width = try getVisibleWidth(allocator, column.header);
+
+            for (self.rows.items) |row| {
+                if (col_index < row.items.len) {
+                    const cell = row.items[col_index];
+                    const cell_width = try getVisibleWidth(allocator, cell);
+                    if (cell_width > max_width) {
+                        max_width = cell_width;
+                    }
+                }
+            }
+            column.width = max_width;
+        }
+    }
+
     pub fn init(allocator: Allocator, style: TableStyle) Table {
         return Table{
             .allocator = allocator,
@@ -332,6 +354,8 @@ pub const Table = struct {
         var arena = std.heap.ArenaAllocator.init(self.allocator);
         defer arena.deinit();
         const arena_allocator = arena.allocator();
+
+        try self.computeColumnWidths(self.allocator);
 
         self.printHorizontalLine(.top);
 
