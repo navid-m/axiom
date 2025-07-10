@@ -429,6 +429,5 @@ test "simple table creation" {
 
     var rounded_simple_table = try createSimpleTableWithStyle(allocator, &tech_headers, &tech_rows, .rounded);
     defer rounded_simple_table.deinit();
-
     try rounded_simple_table.printTable();
 }
