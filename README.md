@@ -16,8 +16,8 @@ try table.printTable();
 
 ## Preview
 
-<img src="img/screen.png">
 <img src="img/screen_2.png">
+<img src="img/screen.png">
 
 ---
 
