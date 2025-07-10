@@ -303,10 +303,7 @@ test "table creation and basic functionality" {
 }
 
 test "simple table creation" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
+    const allocator = std.heap.page_allocator;
     const headers = [_][]const u8{ "Product", "Price", "Stock" };
     const rows = [_][]const []const u8{
         &[_][]const u8{ "Widget", "$10.99", "50" },
@@ -328,11 +325,9 @@ test "simple table creation" {
     try ascii_table.addColumn("Age", 5, .right);
     try ascii_table.addColumn("Department", 15, .center);
     try ascii_table.addColumn("Salary", 10, .right);
-
     try ascii_table.addRow(&[_][]const u8{ "Alice Johnson", "28", "Engineering", "$75,000" });
     try ascii_table.addRow(&[_][]const u8{ "Bob Smith", "35", "Marketing", "$65,000" });
     try ascii_table.addRow(&[_][]const u8{ "Carol Davis", "42", "Finance", "$80,000" });
-
     try ascii_table.print_table();
 
     print("\n=== Unicode Table Example ===\n", .{});
@@ -356,10 +351,8 @@ test "simple table creation" {
     try double_table.addColumn("Language", 10, .left);
     try double_table.addColumn("Year", 6, .center);
     try double_table.addColumn("Type", 12, .left);
-
     try double_table.addRow(&[_][]const u8{ "Zig", "2016", "Systems" });
     try double_table.addRow(&[_][]const u8{ "Rust", "2010", "Systems" });
     try double_table.addRow(&[_][]const u8{ "Go", "2009", "General" });
-
     try double_table.print_table();
 }
