@@ -1,6 +1,9 @@
 const std = @import("std");
+const builtin = @import("builtin");
+
 const testing = std.testing;
 const print = std.debug.print;
+
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
@@ -210,7 +213,9 @@ pub const Table = struct {
             return;
         }
 
-        _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
+        if (builtin.os.tag == .windows) {
+            _ = std.os.windows.kernel32.SetConsoleOutputCP(65001);
+        }
 
         const chars = self.getBoxChars();
         var arena = std.heap.ArenaAllocator.init(self.allocator);
