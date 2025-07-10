@@ -47,15 +47,12 @@ test "toast notifications" {
 test "colored tables and toasts" {
     const allocator = std.heap.page_allocator;
 
-    print("=== Toast Notifications ===\n", .{});
     try showInfo(allocator, "Starting table examples");
 
     const custom_toast = Toast.init("Custom toast with timestamp", .success)
         .withTimestamp(true)
         .withWidth(50);
     try custom_toast.show(allocator);
-
-    print("\n=== Colored Tables ===\n", .{});
 
     var colored_table = Table.init(allocator, .unicode)
         .withColors(TableColorTheme.blue)
@@ -66,14 +63,12 @@ test "colored tables and toasts" {
     try colored_table.addColumn("Year", 6, .center);
     try colored_table.addColumn("Type", 12, .left);
     try colored_table.addColumn("Rating", 8, .right);
-    try colored_table.addRow(&[_][]const u8{ "Zig", "2016", "Systems", "★★★★★" });
-    try colored_table.addRow(&[_][]const u8{ "Rust", "2010", "Systems", "★★★★☆" });
+    try colored_table.addRow(&[_][]const u8{ "Zig", "2016", "Systems", "★★★☆☆" });
+    try colored_table.addRow(&[_][]const u8{ "Rust", "2010", "Systems", "★☆☆☆☆" });
     try colored_table.addRow(&[_][]const u8{ "Go", "2009", "General", "★★★★☆" });
-    try colored_table.addRow(&[_][]const u8{ "Python", "1991", "General", "★★★★★" });
+    try colored_table.addRow(&[_][]const u8{ "Python", "1991", "General", "★★★☆☆" });
     try colored_table.printTable();
     try showSuccess(allocator, "Table printed successfully");
-
-    print("\n=== Green Theme Table ===\n", .{});
 
     var green_table = Table.init(allocator, .rounded)
         .withColors(TableColorTheme.green);

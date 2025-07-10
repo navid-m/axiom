@@ -35,15 +35,6 @@ pub const ToastType = enum {
             .err => "✗",
         };
     }
-
-    pub fn getLabel(self: ToastType) []const u8 {
-        return switch (self) {
-            .info => "INFO",
-            .success => "SUCCESS",
-            .warning => "WARNING",
-            .err => "ERROR",
-        };
-    }
 };
 
 /// The toast configuration
@@ -89,7 +80,6 @@ pub const Toast = struct {
 
         const color = self.toast_type.getColor();
         const icon = if (self.show_icon) self.toast_type.getIcon() else "";
-        const label = self.toast_type.getLabel();
 
         var arena = std.heap.ArenaAllocator.init(allocator);
         defer arena.deinit();
@@ -102,8 +92,6 @@ pub const Toast = struct {
             try content.appendSlice(" ");
         }
 
-        try content.appendSlice(label);
-        try content.appendSlice(": ");
         try content.appendSlice(self.message);
 
         if (self.show_timestamp) {
