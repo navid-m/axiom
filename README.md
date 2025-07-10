@@ -15,4 +15,6 @@ try testing.expect(table.columns.items.len == 3);
 try testing.expect(table.rows.items.len == 2);
 ```
 
+---
+
 No warranty. Not ever.
