@@ -4,6 +4,7 @@ const toasts = @import("toasts.zig");
 const colors = @import("colors.zig");
 const tables = @import("tables.zig");
 const bars = @import("bars.zig");
+const sparks = @import("sparks.zig");
 
 pub const BarChart = bars.BarChart;
 pub const BarStyle = bars.BarStyle;
@@ -11,6 +12,7 @@ pub const Table = tables.Table;
 pub const TableColorTheme = tables.TableColorTheme;
 pub const Toast = toasts.Toast;
 pub const Color = colors.Color;
+pub const Sparkline = sparks.Sparkline;
 
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
@@ -203,4 +205,17 @@ test "unicode bar chart" {
     try chart.addBar("Disk", 90);
     try chart.addBar("Network", 40);
     try chart.printChart();
+}
+
+test "sparkline render basic" {
+    const data = [_]u64{ 1, 5, 22, 13, 53, 29, 44, 90 };
+    const spark = Sparkline(u64).init(&data);
+
+    var buf: [64]u8 = undefined;
+    var stream = std.io.fixedBufferStream(&buf);
+    try spark.render(stream.writer());
+    try spark.render(std.io.getStdOut().writer());
+    const output = stream.getWritten();
+
+    try std.testing.expectEqualStrings("▁▁▂▁▅▃▄█\n", output);
 }
