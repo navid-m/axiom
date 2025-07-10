@@ -224,25 +224,60 @@ pub const Table = struct {
         return buf;
     }
 
+    fn truncateVisible(text: []const u8, max_width: usize, allocator: std.mem.Allocator) ![]const u8 {
+        var result = std.ArrayList(u8).init(allocator);
+        var visible_count: usize = 0;
+        var i: usize = 0;
+
+        while (i < text.len and visible_count < max_width) {
+            if (text[i] == '\x1B' and i + 1 < text.len and text[i + 1] == '[') {
+                try result.append(text[i]);
+                i += 1;
+                while (i < text.len) {
+                    try result.append(text[i]);
+                    if (text[i] >= 0x40 and text[i] <= 0x7E) break;
+                    i += 1;
+                }
+                i += 1;
+            } else {
+                const char_len = std.unicode.utf8ByteSequenceLength(text[i]) catch break;
+                if (i + char_len > text.len) break;
+
+                try result.appendSlice(text[i .. i + char_len]);
+                i += char_len;
+                visible_count += 1;
+            }
+        }
+
+        return result.toOwnedSlice();
+    }
+
     fn padString(_: *const Table, allocator: Allocator, text: []const u8, width: usize, alignment: Alignment) ![]u8 {
         const stripped = try stripAnsiAndCount(text, allocator);
         const visible_len = stripped.display_width;
 
-        if (visible_len >= width) {
-            return try allocator.dupe(u8, text);
-        }
+        const truncated_text = if (visible_len > width)
+            try truncateVisible(text, width, allocator)
+        else
+            text;
 
-        const padding = width - visible_len;
+        const truncated_info = try stripAnsiAndCount(truncated_text, allocator);
+        const final_visible_len = truncated_info.display_width;
+        const padding = width - final_visible_len;
+
         const left_pad = switch (alignment) {
             .left => 0,
             .right => padding,
             .center => padding / 2,
         };
-
         const right_pad = padding - left_pad;
-        const result = try std.fmt.allocPrint(allocator, "{s}{s}{s}", .{ try makePadding(allocator, left_pad), text, try makePadding(allocator, right_pad) });
 
-        return result;
+        const left_spaces = try makePadding(allocator, left_pad);
+        const right_spaces = try makePadding(allocator, right_pad);
+
+        return try std.fmt.allocPrint(allocator, "{s}{s}{s}", .{
+            left_spaces, truncated_text, right_spaces,
+        });
     }
 
     fn printHorizontalLine(self: *const Table, line_type: enum { top, middle, bottom }) void {
