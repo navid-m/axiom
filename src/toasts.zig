@@ -2,8 +2,10 @@ const std = @import("std");
 const builtin = @import("builtin");
 const colors = @import("colors.zig");
 
-const Color = colors.Color;
 const print = std.debug.print;
+
+const Allocator = std.mem.Allocator;
+const Color = colors.Color;
 
 /// ANSI color codes for terminal output
 ///
@@ -161,8 +163,6 @@ pub const Toast = struct {
         print("┘{s}\n", .{Color.reset});
     }
 };
-
-const Allocator = std.mem.Allocator;
 
 pub fn showInfo(allocator: Allocator, message: []const u8) !void {
     const toast = Toast.init(message, .info);
