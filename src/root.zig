@@ -5,6 +5,7 @@ const colors = @import("colors.zig");
 const tables = @import("tables.zig");
 const bars = @import("bars.zig");
 const sparks = @import("sparks.zig");
+const lines = @import("lines.zig");
 
 pub const BarChart = bars.BarChart;
 pub const BarStyle = bars.BarStyle;
@@ -13,6 +14,7 @@ pub const TableColorTheme = tables.TableColorTheme;
 pub const Toast = toasts.Toast;
 pub const Color = colors.Color;
 pub const Sparkline = sparks.Sparkline;
+pub const LineChart = lines.LineChart;
 
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
@@ -26,6 +28,8 @@ pub const showSuccess = toasts.showSuccess;
 pub const showWarning = toasts.showWarning;
 pub const createSimpleTable = tables.createSimpleTable;
 pub const createSimpleTableWithStyle = tables.createSimpleTableWithStyle;
+pub const createSimpleLineChart = lines.createSimpleLineChart;
+pub const createLineChart = lines.createLineChart;
 
 test "table creation and basic functionality" {
     var table = Table.init(std.heap.page_allocator, .ascii);
@@ -218,4 +222,50 @@ test "sparkline render basic" {
     const output = stream.getWritten();
 
     try std.testing.expectEqualStrings("▁▁▂▁▅▃▄█\n", output);
+}
+
+test "line chart basic functionality" {
+    const allocator = std.heap.page_allocator;
+    var chart = LineChart.init(allocator, .ascii, 40, 20);
+    defer chart.deinit();
+
+    try chart.addPoint(0, 0, null);
+    try chart.addPoint(1, 2, null);
+    try chart.addPoint(2, 1, null);
+    try chart.addPoint(3, 4, null);
+    try chart.addPoint(4, 3, null);
+
+    try testing.expect(chart.points.items.len == 5);
+}
+
+test "line chart with simple data" {
+    const allocator = std.heap.page_allocator;
+    const data = [_]f64{ 1.0, 3.0, 2.0, 5.0, 4.0, 6.0, 5.5, 7.0 };
+
+    var chart = try createSimpleLineChart(allocator, &data, .ascii);
+    defer chart.deinit();
+
+    print("\nSimple Line Chart (ASCII):\n", .{});
+    try chart.printChart();
+    try chart.printStatistics();
+}
+
+test "smooth line chart with custom bounds" {
+    const allocator = std.heap.page_allocator;
+    var chart = LineChart.init(allocator, .smooth, 50, 20);
+    defer chart.deinit();
+
+    for (0..20) |i| {
+        const x = @as(f64, @floatFromInt(i)) * 0.5;
+        const y = @sin(x) * 10.0 + 10.0;
+        try chart.addPoint(x, y, null);
+    }
+
+    chart.setBounds(0, 10, 0, 20);
+    chart = chart.withTitle("Sine Wave")
+        .withLabels("Time", "Amplitude")
+        .withGrid(true);
+
+    print("\nSmooth Line Chart (Sine Wave):\n", .{});
+    try chart.printChart();
 }
