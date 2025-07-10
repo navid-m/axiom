@@ -64,6 +64,20 @@ const TableChars = struct {
         .tee_left = "╣",
         .tee_right = "╠",
     };
+
+    const rounded = BoxChars{
+        .top_left = "╭",
+        .top_right = "╮",
+        .bottom_left = "╰",
+        .bottom_right = "╯",
+        .horizontal = "─",
+        .vertical = "│",
+        .cross = "┼",
+        .tee_down = "┬",
+        .tee_up = "┴",
+        .tee_left = "┤",
+        .tee_right = "├",
+    };
 };
 
 /// The table content alignment options
@@ -78,6 +92,7 @@ pub const TableStyle = enum {
     ascii,
     unicode,
     double_line,
+    rounded,
 };
 
 /// The overall column configuration
@@ -139,6 +154,7 @@ pub const Table = struct {
             .ascii => TableChars.ascii,
             .unicode => TableChars.unicode,
             .double_line => TableChars.double_line,
+            .rounded => TableChars.rounded,
         };
     }
 
@@ -207,7 +223,7 @@ pub const Table = struct {
         print("\n", .{});
     }
 
-    pub fn print_table(self: *const Table) !void {
+    pub fn printTable(self: *const Table) !void {
         if (self.columns.items.len == 0) {
             print("Empty table\n", .{});
             return;
@@ -283,12 +299,53 @@ pub fn createSimpleTable(allocator: Allocator, headers: []const []const u8, rows
     return table;
 }
 
+pub fn createSimpleTableWithStyle(allocator: Allocator, headers: []const []const u8, rows: []const []const []const u8, style: TableStyle) !Table {
+    var table = Table.init(allocator, style);
+
+    for (headers) |header| {
+        var max_width = header.len;
+        const col_index = findColumnIndex(headers, header) orelse 0;
+        for (rows) |row| {
+            if (col_index < row.len and row[col_index].len > max_width) {
+                max_width = row[col_index].len;
+            }
+        }
+
+        try table.addColumn(header, @max(max_width, 5), .left);
+    }
+
+    for (rows) |row| {
+        try table.addRow(row);
+    }
+
+    return table;
+}
+
 test "table creation and basic functionality" {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
     var table = Table.init(allocator, .ascii);
+    defer table.deinit();
+
+    try table.addColumn("Name", 10, .left);
+    try table.addColumn("Age", 5, .right);
+    try table.addColumn("City", 12, .center);
+
+    try table.addRow(&[_][]const u8{ "Alice", "25", "New York" });
+    try table.addRow(&[_][]const u8{ "Bob", "30", "Los Angeles" });
+
+    try testing.expect(table.columns.items.len == 3);
+    try testing.expect(table.rows.items.len == 2);
+}
+
+test "rounded table style" {
+    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+    defer _ = gpa.deinit();
+    const allocator = gpa.allocator();
+
+    var table = Table.init(allocator, .rounded);
     defer table.deinit();
 
     try table.addColumn("Name", 10, .left);
@@ -328,7 +385,7 @@ test "simple table creation" {
     try ascii_table.addRow(&[_][]const u8{ "Alice Johnson", "28", "Engineering", "$75,000" });
     try ascii_table.addRow(&[_][]const u8{ "Bob Smith", "35", "Marketing", "$65,000" });
     try ascii_table.addRow(&[_][]const u8{ "Carol Davis", "42", "Finance", "$80,000" });
-    try ascii_table.print_table();
+    try ascii_table.printTable();
 
     print("\n=== Unicode Table Example ===\n", .{});
     const headersa = [_][]const u8{ "Product", "Price", "Stock", "Category" };
@@ -342,7 +399,7 @@ test "simple table creation" {
     var unicode_table = try createSimpleTable(allocator, &headersa, &rowsa);
     defer unicode_table.deinit();
 
-    try unicode_table.print_table();
+    try unicode_table.printTable();
 
     print("\n=== Double Line Table Example ===\n", .{});
     var double_table = Table.init(allocator, .double_line);
@@ -354,5 +411,30 @@ test "simple table creation" {
     try double_table.addRow(&[_][]const u8{ "Zig", "2016", "Systems" });
     try double_table.addRow(&[_][]const u8{ "Rust", "2010", "Systems" });
     try double_table.addRow(&[_][]const u8{ "Go", "2009", "General" });
-    try double_table.print_table();
+    try double_table.printTable();
+
+    print("\n=== Rounded Table Example ===\n", .{});
+    var rounded_table = Table.init(allocator, .rounded);
+    defer rounded_table.deinit();
+
+    try rounded_table.addColumn("Framework", 12, .left);
+    try rounded_table.addColumn("Stars", 8, .right);
+    try rounded_table.addColumn("Language", 10, .center);
+    try rounded_table.addRow(&[_][]const u8{ "React", "220k", "JavaScript" });
+    try rounded_table.addRow(&[_][]const u8{ "Vue", "206k", "JavaScript" });
+    try rounded_table.addRow(&[_][]const u8{ "Angular", "93k", "TypeScript" });
+    try rounded_table.printTable();
+
+    print("\n=== Rounded Table  ===\n", .{});
+    const tech_headers = [_][]const u8{ "Technology", "Type", "Popularity" };
+    const tech_rows = [_][]const []const u8{
+        &[_][]const u8{ "Docker", "Container", "Very High" },
+        &[_][]const u8{ "Kubernetes", "Orchestration", "High" },
+        &[_][]const u8{ "GraphQL", "API", "Medium" },
+    };
+
+    var rounded_simple_table = try createSimpleTableWithStyle(allocator, &tech_headers, &tech_rows, .rounded);
+    defer rounded_simple_table.deinit();
+
+    try rounded_simple_table.printTable();
 }
