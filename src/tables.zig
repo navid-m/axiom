@@ -2,12 +2,14 @@ const std = @import("std");
 const builtin = @import("builtin");
 const toasts = @import("toasts.zig");
 const colors = @import("colors.zig");
+const ansi = @import("ansi.zig");
 
 const Toast = toasts.Toast;
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const Color = colors.Color;
 
+const stripAnsiAndCount = ansi.stripAnsiAndCount;
 const print = std.debug.print;
 
 pub const TableColorTheme = struct {
@@ -216,30 +218,29 @@ pub const Table = struct {
         };
     }
 
+    fn makePadding(allocator: std.mem.Allocator, count: usize) ![]u8 {
+        const buf = try allocator.alloc(u8, count);
+        @memset(buf, ' ');
+        return buf;
+    }
+
     fn padString(_: *const Table, allocator: Allocator, text: []const u8, width: usize, alignment: Alignment) ![]u8 {
-        if (text.len >= width) {
-            return try allocator.dupe(u8, text[0..width]);
+        const stripped = try stripAnsiAndCount(text, allocator);
+        const visible_len = stripped.display_width;
+
+        if (visible_len >= width) {
+            return try allocator.dupe(u8, text);
         }
 
-        const padding = width - text.len;
-        var result = try allocator.alloc(u8, width);
+        const padding = width - visible_len;
+        const left_pad = switch (alignment) {
+            .left => 0,
+            .right => padding,
+            .center => padding / 2,
+        };
 
-        switch (alignment) {
-            .left => {
-                @memcpy(result[0..text.len], text);
-                @memset(result[text.len..], ' ');
-            },
-            .right => {
-                @memset(result[0..padding], ' ');
-                @memcpy(result[padding..], text);
-            },
-            .center => {
-                const left_pad = padding / 2;
-                @memset(result[0..left_pad], ' ');
-                @memcpy(result[left_pad .. left_pad + text.len], text);
-                @memset(result[left_pad + text.len ..], ' ');
-            },
-        }
+        const right_pad = padding - left_pad;
+        const result = try std.fmt.allocPrint(allocator, "{s}{s}{s}", .{ try makePadding(allocator, left_pad), text, try makePadding(allocator, right_pad) });
 
         return result;
     }
