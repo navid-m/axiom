@@ -361,7 +361,7 @@ test "simple table creation" {
     try testing.expect(table.columns.items.len == 3);
     try testing.expect(table.rows.items.len == 3);
 
-    print("=== ASCII Table Example ===\n", .{});
+    print("ASCII Table\n", .{});
     var ascii_table = Table.init(allocator, .ascii);
     defer ascii_table.deinit();
 
@@ -374,7 +374,7 @@ test "simple table creation" {
     try ascii_table.addRow(&[_][]const u8{ "Carol Davis", "42", "Finance", "$80,000" });
     try ascii_table.printTable();
 
-    print("\n=== Unicode Table Example ===\n", .{});
+    print("\nUnicode Table Example\n", .{});
     const headersa = [_][]const u8{ "Product", "Price", "Stock", "Category" };
     const rowsa = [_][]const []const u8{
         &[_][]const u8{ "Laptop", "$899.99", "15", "Electronics" },
@@ -388,7 +388,7 @@ test "simple table creation" {
 
     try unicode_table.printTable();
 
-    print("\n=== Double Line Table Example ===\n", .{});
+    print("\nDouble Line Table Example\n", .{});
     var double_table = Table.init(allocator, .double_line);
     defer double_table.deinit();
 
@@ -400,7 +400,7 @@ test "simple table creation" {
     try double_table.addRow(&[_][]const u8{ "Go", "2009", "General" });
     try double_table.printTable();
 
-    print("\n=== Rounded Table Example ===\n", .{});
+    print("\nRounded Table Example\n", .{});
     var rounded_table = Table.init(allocator, .rounded);
     defer rounded_table.deinit();
 
@@ -412,7 +412,7 @@ test "simple table creation" {
     try rounded_table.addRow(&[_][]const u8{ "Angular", "93k", "TypeScript" });
     try rounded_table.printTable();
 
-    print("\n=== Rounded Table  ===\n", .{});
+    print("\nRounded Table Example II\n", .{});
     const tech_headers = [_][]const u8{ "Technology", "Type", "Popularity" };
     const tech_rows = [_][]const []const u8{
         &[_][]const u8{ "Docker", "Container", "Very High" },
