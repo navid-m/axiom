@@ -180,7 +180,7 @@ test "simple table creation" {
 
 test "bar chart basic display" {
     const allocator = std.heap.page_allocator;
-    var chart = BarChart.init(allocator, .ascii, 40);
+    var chart = BarChart.init(allocator, .ascii, 40, false);
     defer chart.deinit();
 
     try chart.addBar("Apples", 50);
@@ -193,7 +193,7 @@ test "bar chart basic display" {
 
 test "unicode bar chart" {
     const allocator = std.heap.page_allocator;
-    var chart = BarChart.init(allocator, .unicode, 50);
+    var chart = BarChart.init(allocator, .unicode, 50, true);
     defer chart.deinit();
 
     try chart.addBar("CPU", 75);

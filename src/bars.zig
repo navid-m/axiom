@@ -1,4 +1,5 @@
 const std = @import("std");
+const colors = @import("colors.zig");
 
 const print = std.debug.print;
 
@@ -14,13 +15,17 @@ pub const BarChart = struct {
     values: std.ArrayList(u32),
     max_width: usize,
     style: BarStyle,
+    use_random_cols: bool,
+    allocator: Allocator,
 
-    pub fn init(allocator: Allocator, style: BarStyle, max_width: usize) BarChart {
+    pub fn init(allocator: Allocator, style: BarStyle, max_width: usize, use_random_cols: bool) BarChart {
         return BarChart{
             .labels = std.ArrayList([]const u8).init(allocator),
             .values = std.ArrayList(u32).init(allocator),
             .max_width = max_width,
             .style = style,
+            .use_random_cols = use_random_cols,
+            .allocator = allocator,
         };
     }
 
@@ -56,9 +61,13 @@ pub const BarChart = struct {
                 .ascii => "#",
                 .unicode => "█",
             };
+
+            const color_prefix = if (self.use_random_cols) colors.randomColorCode() else "";
+            const color_reset = if (self.use_random_cols) "\x1b[0m" else "";
+
             print("{s: <12} | ", .{label});
             for (0..bar_len) |_| {
-                print("{s}", .{bar_char});
+                print("{s}{s}{s}", .{ color_prefix, bar_char, color_reset });
             }
             print(" ({d})\n", .{value});
         }

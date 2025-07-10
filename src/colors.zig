@@ -1,3 +1,5 @@
+const std = @import("std");
+
 pub const Color = struct {
     pub const reset = "\x1b[0m";
     pub const bold = "\x1b[1m";
@@ -26,4 +28,10 @@ pub const Color = struct {
     pub const bright_magenta = "\x1b[95m";
     pub const bright_cyan = "\x1b[96m";
     pub const bright_white = "\x1b[97m";
+
+    pub const rcolor_list = [_][]const u8{ red, green, yellow, bright_red, bright_white, bright_blue, blue, bright_cyan, bg_red, cyan, bg_green, bg_blue };
 };
+
+pub fn randomColorCode() []const u8 {
+    return Color.rcolor_list[std.crypto.random.intRangeAtMost(usize, 0, Color.rcolor_list.len - 1)];
+}
