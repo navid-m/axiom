@@ -7,7 +7,6 @@ const print = std.debug.print;
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
-/// Denotes the table drawing characters
 const TableChars = struct {
     const BoxChars = struct {
         top_left: []const u8,
