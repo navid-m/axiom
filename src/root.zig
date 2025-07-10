@@ -3,7 +3,10 @@ const builtin = @import("builtin");
 const toasts = @import("toasts.zig");
 const colors = @import("colors.zig");
 const tables = @import("tables.zig");
+const bars = @import("bars.zig");
 
+pub const BarChart = bars.BarChart;
+pub const BarStyle = bars.BarStyle;
 pub const Table = tables.Table;
 pub const TableColorTheme = tables.TableColorTheme;
 pub const Toast = toasts.Toast;
@@ -173,4 +176,31 @@ test "simple table creation" {
     var rounded_simple_table = try createSimpleTableWithStyle(allocator, &tech_headers, &tech_rows, .rounded);
     defer rounded_simple_table.deinit();
     try rounded_simple_table.printTable();
+}
+
+test "bar chart basic display" {
+    const allocator = std.heap.page_allocator;
+    var chart = BarChart.init(allocator, .ascii, 40, false);
+    defer chart.deinit();
+
+    try chart.addBar("Apples", 50);
+    try chart.addBar("Bananas", 30);
+    try chart.addBar("Cherries", 70);
+    try chart.addBar("Dates", 20);
+    try chart.addBar("Elderberry", 90);
+    try chart.printChart();
+}
+
+test "unicode bar chart" {
+    const allocator = std.heap.page_allocator;
+    var chart = BarChart.init(allocator, .unicode, 50, true);
+    defer chart.deinit();
+
+    std.debug.print("\n", .{});
+
+    try chart.addBar("CPU", 75);
+    try chart.addBar("RAM", 60);
+    try chart.addBar("Disk", 90);
+    try chart.addBar("Network", 40);
+    try chart.printChart();
 }
