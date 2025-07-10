@@ -1,11 +1,60 @@
 const std = @import("std");
 const builtin = @import("builtin");
+const toasts = @import("toasts.zig");
+const colors = @import("colors.zig");
+
+const Toast = toasts.Toast;
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
+const Color = colors.Color;
 
 const testing = std.testing;
 const print = std.debug.print;
+const showInfo = toasts.showInfo;
+const showError = toasts.showError;
+const showSuccess = toasts.showSuccess;
+const showWarning = toasts.showWarning;
 
-const ArrayList = std.ArrayList;
-const Allocator = std.mem.Allocator;
+/// Table color theme
+pub const TableColorTheme = struct {
+    border_color: []const u8,
+    header_color: []const u8,
+    header_bg_color: []const u8,
+    row_color: []const u8,
+    alt_row_color: []const u8,
+
+    pub const default = TableColorTheme{
+        .border_color = Color.white,
+        .header_color = Color.white,
+        .header_bg_color = "",
+        .row_color = Color.white,
+        .alt_row_color = Color.white,
+    };
+
+    pub const dark = TableColorTheme{
+        .border_color = Color.bright_black,
+        .header_color = Color.bright_white,
+        .header_bg_color = Color.bg_black,
+        .row_color = Color.bright_white,
+        .alt_row_color = Color.bright_black,
+    };
+
+    pub const blue = TableColorTheme{
+        .border_color = Color.blue,
+        .header_color = Color.bright_blue,
+        .header_bg_color = "",
+        .row_color = Color.white,
+        .alt_row_color = Color.bright_black,
+    };
+
+    pub const green = TableColorTheme{
+        .border_color = Color.green,
+        .header_color = Color.bright_green,
+        .header_bg_color = "",
+        .row_color = Color.white,
+        .alt_row_color = Color.bright_black,
+    };
+};
 
 const TableChars = struct {
     const BoxChars = struct {
@@ -116,6 +165,8 @@ pub const Table = struct {
     rows: ArrayList(ArrayList([]const u8)),
     style: TableStyle,
     has_header: bool,
+    color_theme: TableColorTheme,
+    alternating_rows: bool,
 
     pub fn init(allocator: Allocator, style: TableStyle) Table {
         return Table{
@@ -124,7 +175,21 @@ pub const Table = struct {
             .rows = ArrayList(ArrayList([]const u8)).init(allocator),
             .style = style,
             .has_header = false,
+            .color_theme = TableColorTheme.default,
+            .alternating_rows = false,
         };
+    }
+
+    pub fn withColors(self: Table, theme: TableColorTheme) Table {
+        var table = self;
+        table.color_theme = theme;
+        return table;
+    }
+
+    pub fn withAlternatingRows(self: Table, enabled: bool) Table {
+        var table = self;
+        table.alternating_rows = enabled;
+        return table;
     }
 
     pub fn deinit(self: *Table) void {
@@ -187,6 +252,7 @@ pub const Table = struct {
 
     fn printHorizontalLine(self: *const Table, line_type: enum { top, middle, bottom }) void {
         const chars = self.getBoxChars();
+        const color = self.color_theme.border_color;
 
         const left_char = switch (line_type) {
             .top => chars.top_left,
@@ -206,7 +272,7 @@ pub const Table = struct {
             .bottom => chars.tee_up,
         };
 
-        print("{s}", .{left_char});
+        print("{s}{s}", .{ color, left_char });
 
         for (self.columns.items, 0..) |column, i| {
             for (0..column.width + 2) |_| {
@@ -216,7 +282,7 @@ pub const Table = struct {
             if (i < self.columns.items.len - 1) {
                 print("{s}", .{junction_char});
             } else {
-                print("{s}", .{right_char});
+                print("{s}{s}", .{ right_char, Color.reset });
             }
         }
         print("\n", .{});
@@ -240,27 +306,31 @@ pub const Table = struct {
         self.printHorizontalLine(.top);
 
         if (self.has_header) {
-            print("{s}", .{chars.vertical});
+            print("{s}{s}", .{ self.color_theme.border_color, chars.vertical });
             for (self.columns.items) |column| {
                 const padded_header = try self.padString(arena_allocator, column.header, column.width, column.alignment);
-                print(" {s} ", .{padded_header});
+                print("{s}{s} {s} {s}{s}", .{ Color.reset, self.color_theme.header_color, padded_header, Color.reset, self.color_theme.border_color });
                 print("{s}", .{chars.vertical});
             }
 
-            print("\n", .{});
-
+            print("{s}\n", .{Color.reset});
             self.printHorizontalLine(.middle);
         }
 
-        for (self.rows.items) |row| {
-            print("{s}", .{chars.vertical});
+        for (self.rows.items, 0..) |row, row_index| {
+            const row_color = if (self.alternating_rows and row_index % 2 == 1)
+                self.color_theme.alt_row_color
+            else
+                self.color_theme.row_color;
+
+            print("{s}{s}", .{ self.color_theme.border_color, chars.vertical });
             for (self.columns.items, 0..) |column, i| {
                 const cell_data = if (i < row.items.len) row.items[i] else "";
                 const padded_cell = try self.padString(arena_allocator, cell_data, column.width, column.alignment);
-                print(" {s} ", .{padded_cell});
+                print("{s}{s} {s} {s}{s}", .{ Color.reset, row_color, padded_cell, Color.reset, self.color_theme.border_color });
                 print("{s}", .{chars.vertical});
             }
-            print("\n", .{});
+            print("{s}\n", .{Color.reset});
         }
 
         self.printHorizontalLine(.bottom);
@@ -331,6 +401,59 @@ test "table creation and basic functionality" {
     try table.addRow(&[_][]const u8{ "Bob", "30", "Los Angeles" });
     try testing.expect(table.columns.items.len == 3);
     try testing.expect(table.rows.items.len == 2);
+}
+
+test "toast notifications" {
+    const allocator = std.heap.page_allocator;
+
+    try showInfo(allocator, "This is an info message");
+    try showSuccess(allocator, "Operation completed successfully");
+    try showWarning(allocator, "This is a warning message");
+    try showError(allocator, "An error occurred");
+}
+
+test "colored tables and toasts" {
+    const allocator = std.heap.page_allocator;
+
+    print("=== Toast Notifications ===\n", .{});
+    try showInfo(allocator, "Starting table examples");
+
+    const custom_toast = Toast.init("Custom toast with timestamp", .success)
+        .withTimestamp(true)
+        .withWidth(50);
+    try custom_toast.show(allocator);
+
+    print("\n=== Colored Tables ===\n", .{});
+
+    var colored_table = Table.init(allocator, .unicode)
+        .withColors(TableColorTheme.blue)
+        .withAlternatingRows(true);
+    defer colored_table.deinit();
+
+    try colored_table.addColumn("Language", 12, .left);
+    try colored_table.addColumn("Year", 6, .center);
+    try colored_table.addColumn("Type", 12, .left);
+    try colored_table.addColumn("Rating", 8, .right);
+    try colored_table.addRow(&[_][]const u8{ "Zig", "2016", "Systems", "★★★★★" });
+    try colored_table.addRow(&[_][]const u8{ "Rust", "2010", "Systems", "★★★★☆" });
+    try colored_table.addRow(&[_][]const u8{ "Go", "2009", "General", "★★★★☆" });
+    try colored_table.addRow(&[_][]const u8{ "Python", "1991", "General", "★★★★★" });
+    try colored_table.printTable();
+    try showSuccess(allocator, "Table printed successfully");
+
+    print("\n=== Green Theme Table ===\n", .{});
+
+    var green_table = Table.init(allocator, .rounded)
+        .withColors(TableColorTheme.green);
+    defer green_table.deinit();
+
+    try green_table.addColumn("Status", 10, .left);
+    try green_table.addColumn("Count", 8, .right);
+    try green_table.addColumn("Percentage", 12, .center);
+    try green_table.addRow(&[_][]const u8{ "Active", "150", "75%" });
+    try green_table.addRow(&[_][]const u8{ "Inactive", "50", "25%" });
+    try green_table.printTable();
+    try showInfo(allocator, "All examples completed");
 }
 
 test "rounded table style" {
