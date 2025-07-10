@@ -196,6 +196,8 @@ test "unicode bar chart" {
     var chart = BarChart.init(allocator, .unicode, 50, true);
     defer chart.deinit();
 
+    std.debug.print("\n", .{});
+
     try chart.addBar("CPU", 75);
     try chart.addBar("RAM", 60);
     try chart.addBar("Disk", 90);
