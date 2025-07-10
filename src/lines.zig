@@ -1,5 +1,6 @@
 const std = @import("std");
 const colors = @import("colors.zig");
+
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
