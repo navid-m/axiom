@@ -341,11 +341,7 @@ test "table creation and basic functionality" {
 }
 
 test "rounded table style" {
-    var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-    defer _ = gpa.deinit();
-    const allocator = gpa.allocator();
-
-    var table = Table.init(allocator, .rounded);
+    var table = Table.init(std.heap.page_allocator, .rounded);
     defer table.deinit();
 
     try table.addColumn("Name", 10, .left);
